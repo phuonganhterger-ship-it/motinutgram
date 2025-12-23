@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Thiệp Giáng Sinh — Full</title>
+
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .gift {
+            position: relative;
+        }
+
+        .gift-lid {
+            position: absolute;
+            top: -18px;
+            left: 0;
+            width: 100%;
+            height: 22px;
+            background: #d33;
+            border-radius: 6px 6px 4px 4px;
+            transform-origin: bottom left;
+            transition: transform .6s ease;
+        }
+
+        .spark {
+            position: absolute;
+            font-size: 14px;
+            pointer-events: none;
+            animation: sparkFly 1.4s ease-out forwards;
+        }
+
+        @keyframes sparkFly {
+            0% {
+                transform: translate(0, 0) scale(0.5);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(var(--x), var(--y)) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        @keyframes glowPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #giftSurprise.play {
+            animation: glowPulse 1.2s infinite;
+        }
+
+
+
+        .gift-wrap.open .gift-lid {
+            transform: rotate(-110deg);
+        }
+
+        #giftSurprise {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 14px;
+            color: #ffd973;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.4);
+            transition: .4s ease;
+            text-shadow:
+                0 0 12px rgba(255, 200, 80, 0.9),
+                0 0 26px rgba(255, 230, 150, 0.8),
+                0 0 48px rgba(255, 180, 60, 0.6);
+            pointer-events: none;
+        }
+
+        :root {
+            --gold: #ffd973;
+            --neon: #7efcff;
+            --bg-dark: #031022;
+            --glass: rgba(255, 255, 255, 0.04);
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            /* Fallback for browsers that don't support dvh */
+            height: 100vh;
+            /* Dynamic viewport height for mobile browsers */
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            font-family: 'Playfair Display', serif;
+            background: var(--bg-dark);
+            color: #fff;
+            overflow: hidden;
+            /* Prevent bounce usually */
+            overscroll-behavior: none;
+        }
+
+        #app {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Pages */
+        .page {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity .6s, transform .6s;
+            backdrop-filter: blur(0.6px);
+            z-index: 100;
+            /* Safe area padding */
+            padding-top: env(safe-area-inset-top, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            padding-left: env(safe-area-inset-left, 15px);
+            padding-right: env(safe-area-inset-right, 15px);
+            box-sizing: border-box;
+            overflow-y: auto;
+            /* Allow scrolling if content is too tall */
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .page::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Chrome/Safari */
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(.995);
+        }
+
+        .visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        h1.main {
+            font-size: 3.2rem;
+            margin: 0;
+            text-align: center;
+            pointer-events: none
+        }
+
+        p.lead {
+            max-width: 720px;
+            text-align: center;
+            font-size: 1.15rem;
+            margin: 12px 20px;
+            color: #f5f5f5a0
+        }
+
+        /* Buttons */
+        .controls {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 8px;
+            z-index: 1200
+        }
+
+        .btn {
+            appearance: none;
+            border: 0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #fff 0, #ffd700 100%);
+            color: #000;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .3);
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff
+        }
+
+        /* canvases (stacked) */
+        canvas.full {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10
+        }
+
+        #canvas-bg {
+            z-index: 5
+        }
+
+        /* soft background (tree glow) */
+        #canvas-snow1 {
+            z-index: 30
+        }
+
+        /* crisp snow */
+        #canvas-snow2 {
+            z-index: 25
+        }
+
+        /* soft snow blur layer */
+        #canvas-stars {
+            z-index: 20
+        }
+
+        /* stars */
+        #canvas-fire {
+            z-index: 40
+        }
+
+        /* fireworks/particles */
+        #canvas-text {
+            z-index: 35
+        }
+
+        /* falling gold text */
+
+
+
+        /* Glowing tree (CSS frame used as fallback) */
+        .tree-frame {
+            position: fixed;
+            right: 6%;
+            bottom: 6%;
+            width: 260px;
+            height: 420px;
+            z-index: 50;
+            pointer-events: none;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center
+        }
+
+        .tree-svg {
+            width: 100%;
+            height: 100%
+        }
+
+        /* Gift bounce */
+        .gift-wrap {
+            position: relative;
+            margin-top: 20px;
+            z-index: 160;
+            cursor: pointer
+        }
+
+        .gift {
+            width: 120px;
+            height: 100px;
+            background: linear-gradient(180deg, #e33 0, #b00 100%);
+            border-radius: 10px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6)
+        }
+
+        .gift .ribbon {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 40%;
+            height: 18px;
+            background: linear-gradient(90deg, #fff2, #ffb3);
+            transform: rotate(0)
+        }
+
+        .gift-bounce {
+            animation: pop 1s infinite ease-in-out
+        }
+
+        @keyframes pop {
+            0% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-12px) scale(1.03)
+            }
+
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        /* Neon text */
+        .neon {
+            font-size: 2.4rem;
+            color: #f0f0ef;
+            /* Christmas Gold */
+            font-weight: 700;
+            text-shadow:
+                0 0 10px rgba(255, 215, 0, 0.7),
+                0 0 20px rgba(255, 215, 0, 0.5),
+                0 0 40px rgba(255, 215, 0, 0.3);
+            z-index: 160;
+            margin-top: 12px;
+        }
+
+        /* gold falling words container */
+        .fall-wrap {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 80
+        }
+
+        /* rainbow sweep */
+        .rainbow {
+            position: fixed;
+            left: -30%;
+            top: 0;
+            width: 160%;
+            height: 100%;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: 60;
+            opacity: .18;
+            background: linear-gradient(90deg, #ff5 0%, #ff1 15%, #7bff 30%, #49f 45%, #cf8 60%, #ff5 75%);
+            animation: rainbowMove 8s linear infinite
+        }
+
+        @keyframes rainbowMove {
+            0% {
+                transform: translateX(-20%)
+            }
+
+            50% {
+                transform: translateX(20%)
+            }
+
+            100% {
+                transform: translateX(-20%)
+            }
+        }
+
+        /* small UI hint at bottom */
+        .hint {
+            position: fixed;
+            left: 16px;
+            bottom: 12px;
+            color: #fff6;
+            z-index: 999;
+            font-size: 13px
+        }
+
+        /* responsive */
+        @media (max-width:640px) {
+            h1.main {
+                font-size: 1.7rem !important;
+                /* Slightly smaller for better fit */
+                padding: 0 10px;
+                line-height: 1.3;
+            }
+
+            p.lead {
+                font-size: 0.95rem;
+                /* Readable size */
+                line-height: 1.6;
+                padding: 0 20px;
+                /* More breathing room */
+                margin: 15px 0 25px 0;
+                max-width: 100%;
+                text-align: center;
+                /* Center align looks better for card text */
+                letter-spacing: 0.5px;
+            }
+
+            .neon {
+                font-size: 1.1rem !important;
+                margin-top: 10px;
+                padding: 0 10px;
+            }
+
+            .gift-wrap {
+                transform: scale(0.85);
+                /* Smaller gift on mobile */
+                margin-top: 5px;
+            }
+
+            .santa-run {
+                top: 8%;
+                animation-duration: 15s;
+                transform-origin: left top;
+            }
+
+            .deer,
+            .sleigh {
+                font-size: 28px;
+            }
+
+            .santa-cls {
+                font-size: 22px;
+                top: -5px;
+                left: 6px;
+            }
+
+            /* Bring back the tree frame but smaller and unobtrusive */
+            .tree-frame {
+                display: flex !important;
+                width: 160px;
+                height: 240px;
+                right: -40px;
+                bottom: -20px;
+                opacity: 0.8;
+                z-index: 1;
+                /* Behind interactive elements */
+            }
+
+            .controls {
+                top: 8px;
+                right: 8px;
+            }
+
+            .btn {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            #giftSurprise {
+                font-size: 13px;
+                width: 200px;
+                /* Ensure text wraps if needed inside gift */
+            }
+        }
+
+        /* Extra small phones */
+        @media (max-width: 380px) {
+            h1.main {
+                font-size: 1.5rem !important;
+            }
+
+            p.lead {
+                font-size: 0.85rem;
+            }
+
+            .neon {
+                font-size: 1rem !important;
+            }
+        }
+
+        /* Landscape mode handling */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .page {
+                justify-content: flex-start;
+                padding-top: 10px;
+            }
+
+            h1.main {
+                font-size: 1.4rem !important;
+            }
+
+            .neon {
+                display: none;
+            }
+
+            /* Hide non-critical decor in landscape short screens */
+            .gift-wrap {
+                margin-top: 5px;
+                transform: scale(0.7);
+            }
+        }
+
+        /* Santa flying effect container */
+        .santa-run {
+            position: fixed;
+            top: 15%;
+            left: -100px;
+            z-index: 90;
+            pointer-events: none;
+            /* Container moves across screen */
+            animation: santaFlyAcross 20s linear infinite;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+            opacity: 0.9;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .santa-group {
+            position: relative;
+            display: inline-block;
+            margin-left: -5px;
+        }
+
+        .deer {
+            display: inline-block;
+            font-size: 50px;
+            /* Galloping motion */
+            animation: gallop 0.4s infinite alternate ease-in-out;
+            transform-origin: bottom center;
+        }
+
+        .sleigh {
+            display: inline-block;
+            font-size: 50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .santa-cls {
+            display: inline-block;
+            font-size: 42px;
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            z-index: 1;
+            /* Santa rocking */
+            animation: santaRock 0.8s infinite alternate ease-in-out;
+        }
+
+        @keyframes gallop {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-5px) rotate(-6deg);
+            }
+        }
+
+        @keyframes santaRock {
+            0% {
+                transform: rotate(-2deg);
+            }
+
+            100% {
+                transform: rotate(5deg);
+            }
+        }
+
+        @keyframes santaFlyAcross {
+            0% {
+                transform: translateX(-100vw) translateY(0) rotate(-2deg) scaleX(-1);
+            }
+
+            20% {
+                transform: translateX(20vw) translateY(-5vh) rotate(0deg) scaleX(-1);
+            }
+
+            50% {
+                transform: translateX(50vw) translateY(2vh) rotate(2deg) scaleX(-1);
+            }
+
+            100% {
+                transform: translateX(120vw) translateY(-10vh) rotate(-1deg) scaleX(-1);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .santa-run {
+                top: 10%;
+                animation-duration: 12s;
+            }
+
+            .deer,
+            .sleigh {
+                font-size: 30px;
+            }
+
+            .santa-cls {
+                font-size: 24px;
+                top: -6px;
+                left: 5px;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- Santa chạy -->
+    <!-- Santa chạy -->
+    <div class="santa-run">
+        <span class="deer">🦌🦌</span>
+        <div class="santa-group">
+            <span class="sleigh">🛷</span>
+            <span class="santa-cls">🎅</span>
+        </div>
+        <span style="font-size:20px; animation: sparkleTrail 0.5s infinite alternate; margin-left:5px">✨</span>
+    </div>
+    <div id="app">
+        <!-- controls -->
+        <div class="controls">
+            <button id="musicToggle" class="btn" title="Bật/Tắt nhạc">🔊 Nhạc</button>
+            <button id="nextPage" class="btn-ghost btn"></button>
+        </div>
+
+        <!-- canvases -->
+        <canvas id="canvas-bg" class="full"></canvas> <!-- tree glow / subtle background -->
+        <canvas id="canvas-stars" class="full"></canvas> <!-- stars -->
+        <canvas id="canvas-snow2" class="full"></canvas> <!-- soft snow (layer 2) -->
+        <canvas id="canvas-snow1" class="full"></canvas> <!-- crisp snow (layer 1) -->
+        <canvas id="canvas-text" class="full"></canvas> <!-- falling gold text -->
+        <canvas id="canvas-fire" class="full"></canvas> <!-- fireworks & sparkles -->
+
+        <!-- rainbow sweep -->
+        <div class="rainbow" aria-hidden="true"></div>
+
+
+
+
+        <!-- small stylized triangle tree svg with glow -->
+        <svg class="tree-svg" viewBox="0 0 200 320" preserveAspectRatio="xMidYMax meet">
+            <defs>
+                <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="6" result="coloredBlur" />
+                    <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
+            <g filter="url(#glow)">
+                <polygon points="100,8 20,110 180,110" fill="#0b8b3a" />
+                <polygon points="100,70 10,170 190,170" fill="#0ea54a" />
+                <polygon points="100,140 5,260 195,260" fill="#0fb65a" />
+                <rect x="86" y="260" width="28" height="38" fill="#7b4b20" />
+                <!-- star -->
+                <polygon points="100,0 106,16 124,16 110,26 116,42 100,32 84,42 90,26 76,16 94,16" fill="#ffea55" />
+            </g>
+        </svg>
+    </div>
+
+    <!-- PAGE 1 -->
+    <section id="page1" class="page visible" aria-label="Trang 1">
+        <h1 class="main"
+            style="font-family:'Great Vibes',cursive; font-weight:400; font-size:4rem; color:var(--gold); text-shadow:0 0 15px rgba(255,215,0,0.6), 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 2px;">
+            Merry Christmas 🤍🎄✨</h1>
+        <p class="lead"
+            style="color: #f5f5f5a0;text-shadow:0 0 6px rgba(255,255,255,0.35),0 0 14px rgba(255,220,160,0.25);">Nguyện
+            bình an và tình yêu của Chúa luôn ở cùng bạn chúc mùa Giáng Sinh ấm áp và đầy kỳ diệu chúc bạn Giáng Sinh an
+            lành, nơi trái tim được nghỉ ngơi và nụ cười luôn ở lại với người mình yêu thương và chúa luôn ở bên bạn và
+            mùa giáng sinh này nếu có điều gì ước mong thì mong Chúa giữ bạn thật bình an giữa thế gian nhiều lo lắng và
+            cho bạn luôn có một nơi để trở về trong yêu thương.✨</p>
+        <div style="display:flex;gap:12px;align-items:center;">
+            <div class="gift-wrap" id="giftWrap" title="Bấm để mở quà">
+                <div id="gift" class="gift gift-bounce" aria-hidden="true">
+                    <div class="gift-lid"></div>
+                    <div class="ribbon"></div>
+                    <!-- 🎄 CHỮ BẤT NGỜ -->
+                    <div id="giftSurprise">🎄 Giáng Sinh an lành 🤍</div>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+                <button id="openNext" class="btn">hãy bấm vô đây đừng bấm vô hộp quà🎄🥰 </button>
+                <div class="neon">Hạnh phúc — An lành — Yêu thương</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAGE 2 -->
+    <section id="page2" class="page hidden" aria-label="Trang 2">
+        <h1 class="main"
+            style="font-family:'Great Vibes',cursive; font-weight:400; font-size:3.5rem; color:#ffef9a; text-shadow:0 0 12px rgba(255,239,154,0.6); letter-spacing: 1px;">
+            Lời Chúc Người Bí Ẩn 🤗</h1>
+        <p class="lead">chúc bạn một mùa giáng sinh thật an lành có ánh đèn nhỏ sưởi ấm lòng mình có những khoảnh khắc
+            rất khẽ nhưng đủ làm tim mềm lại mong những ngày cuối năm bạn được bình yên hơn một chút mỉm cười nhiều hơn
+            một chút và thấy cuộc sống vẫn dịu dàng giáng sinh đến không cần điều gì lớn lao chỉ mong bạn luôn được yêu
+            thương theo cách bạn mong muốn và ấm nhất và trong đêm Chúa giáng sinh cầu chúc bạn được nghỉ ngơi trong
+            bình an được yêu thương không điều kiện và được chở che bằng ân sủng của ngài và xin Chúa ở cùng bạn trong
+            từng ngày nhỏ ban cho bạn trái tim nhẹ nhàng biết tin yêu hy vọng và sống hiền lành giữa đời❄🌟🤍</p>
+        <div style="display:flex;gap:12px;align-items:center">
+            <button id="backBtn" class="btn-ghost btn">cám ơn bạn mời bạn bấm qua xem hộp quà ❄️⬅️</button>
+            <button id="stopMusic" class="btn"><svg width="80" height="80" viewBox="0 0 64 64" fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="32" cy="32" r="30" fill="#FFEBE0" />
+                    <path d="M12 26c10-10 30-10 40 0v8H12v-8z" fill="#E83A2F" />
+                    <circle cx="32" cy="38" r="14" fill="white" />
+                    <circle cx="24" cy="34" r="3" fill="black" />
+                    <circle cx="40" cy="34" r="3" fill="black" />
+                    <circle cx="32" cy="42" r="4" fill="#E83A2F" />
+                    <circle cx="32" cy="12" r="10" fill="#E83A2F" />
+                </svg>
+            </button>
+        </div>
+    </section>
+
+
+
+    <!-- audio -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="nhac-noel-giang-sinh-vui-nhon-406382.mp3" type="audio/mpeg">
+        <!-- Thay nhac.mp3 bằng đường dẫn file nhạc của bạn -->
+    </audio>
+    </div>
+
+    <script>
+        /* ========= Setup canvases & sizes ========= */
+        const canvasBg = document.getElementById('canvas-bg');
+        const canvasStars = document.getElementById('canvas-stars');
+        const canvasSnow1 = document.getElementById('canvas-snow1');
+        const canvasSnow2 = document.getElementById('canvas-snow2');
+        const canvasText = document.getElementById('canvas-text');
+        const canvasFire = document.getElementById('canvas-fire');
+
+        const ctxBg = canvasBg.getContext('2d');
+        const ctxStars = canvasStars.getContext('2d');
+        const ctxSnow1 = canvasSnow1.getContext('2d');
+        const ctxSnow2 = canvasSnow2.getContext('2d');
+        const ctxText = canvasText.getContext('2d');
+        const ctxFire = canvasFire.getContext('2d');
+
+        function resizeAll() {
+            [canvasBg, canvasStars, canvasSnow1, canvasSnow2, canvasText, canvasFire].forEach(c => {
+                c.width = innerWidth * devicePixelRatio;
+                c.height = innerHeight * devicePixelRatio;
+                c.style.width = innerWidth + 'px';
+                c.style.height = innerHeight + 'px';
+                const ctx = c.getContext('2d');
+                ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+            });
+        }
+        resizeAll();
+        window.addEventListener('resize', resizeAll);
+
+        /* ========= Background glow (subtle radial behind tree) ========= */
+        function drawBgGlow() {
+            const w = innerWidth, h = innerHeight;
+            ctxBg.clearRect(0, 0, w, h);
+            // subtle radial gradient center-left bottom
+            const g = ctxBg.createRadialGradient(w * 0.8, h * 0.75, 30, w * 0.8, h * 0.75, 800);
+            g.addColorStop(0, 'rgba(255,230,150,0.18)');
+            g.addColorStop(0.4, 'rgba(10,80,45,0.06)');
+            g.addColorStop(1, 'rgba(2,6,12,0.85)');
+            ctxBg.fillStyle = g;
+            ctxBg.fillRect(0, 0, w, h);
+        }
+        drawBgGlow();
+
+        /* ========= Stars (twinkle) ========= */
+        let stars = [];
+        function initStars() {
+            stars = [];
+            const isMobile = innerWidth < 768;
+            const count = isMobile ? 40 : Math.floor((innerWidth * innerHeight) / 90000) + 80;
+            for (let i = 0; i < count; i++) {
+                stars.push({
+                    x: Math.random() * innerWidth,
+                    y: Math.random() * innerHeight * 0.6,
+                    r: Math.random() * 1.6 + 0.4,
+                    a: Math.random(),
+                    da: Math.random() * 0.02 + 0.002
+                });
+            }
+        }
+        initStars();
+        function renderStars() {
+            ctxStars.clearRect(0, 0, innerWidth, innerHeight);
+            for (const s of stars) {
+                s.a += s.da * (Math.random() * 1.2);
+                if (s.a > 1.2) s.a = 0;
+                ctxStars.beginPath();
+                ctxStars.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctxStars.fillStyle = `rgba(255,245,200,${Math.min(s.a, 1)})`;
+                ctxStars.fill();
+            }
+            requestAnimationFrame(renderStars);
+        }
+        renderStars();
+
+        /* ========= Snow layer 1 (crisp flakes) ========= */
+        let flakes1 = [];
+        function initSnow1() {
+            flakes1 = [];
+            const isMobile = innerWidth < 768;
+            const num = isMobile ? 30 : Math.min(500, Math.floor(innerWidth / 7));
+            for (let i = 0; i < num; i++) {
+                flakes1.push({
+                    x: Math.random() * innerWidth,
+                    y: Math.random() * innerHeight,
+                    r: Math.random() * 3 + 0.8,
+                    vy: Math.random() * 1.2 + 0.6,
+                    vx: (Math.random() - 0.5) * 0.6,
+                    a: Math.random() * 0.9 + 0.4
+                });
+            }
+        }
+        initSnow1();
+
+        function renderSnow1() {
+            ctxSnow1.clearRect(0, 0, innerWidth, innerHeight);
+            ctxSnow1.fillStyle = '#fff';
+            for (const f of flakes1) {
+                ctxSnow1.beginPath();
+                ctxSnow1.globalAlpha = f.a;
+                ctxSnow1.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                ctxSnow1.fill();
+                f.x += f.vx;
+                f.y += f.vy;
+                // drift
+                f.x += Math.sin(f.y * 0.01) * 0.3;
+                if (f.y > innerHeight + 10) { f.y = -10; f.x = Math.random() * innerWidth; }
+                if (f.x < -10) f.x = innerWidth + 10;
+                if (f.x > innerWidth + 10) f.x = -10;
+            }
+            ctxSnow1.globalAlpha = 1;
+            requestAnimationFrame(renderSnow1);
+        }
+        renderSnow1();
+
+        /* ========= Snow layer 2 (soft blurred, slower) ========= */
+        let flakes2 = [];
+        function initSnow2() {
+            flakes2 = [];
+            const isMobile = innerWidth < 768;
+            const num = isMobile ? 20 : Math.min(260, Math.floor(innerWidth / 14));
+            for (let i = 0; i < num; i++) {
+                flakes2.push({
+                    x: Math.random() * innerWidth,
+                    y: Math.random() * innerHeight,
+                    r: Math.random() * 6 + 6,
+                    vy: Math.random() * 0.6 + 0.2,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    a: Math.random() * 0.35 + 0.08
+                });
+            }
+        }
+        initSnow2();
+
+        function renderSnow2() {
+            ctxSnow2.clearRect(0, 0, innerWidth, innerHeight);
+            for (const f of flakes2) {
+                const grad = ctxSnow2.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r);
+                grad.addColorStop(0, `rgba(255,255,255,${f.a})`);
+                grad.addColorStop(1, `rgba(255,255,255,0)`);
+                ctxSnow2.fillStyle = grad;
+                ctxSnow2.beginPath();
+                ctxSnow2.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+                ctxSnow2.fill();
+                f.x += f.vx; f.y += f.vy;
+                if (f.y > innerHeight + 30) { f.y = -30; f.x = Math.random() * innerWidth; }
+            }
+            requestAnimationFrame(renderSnow2);
+        }
+        renderSnow2();
+
+        /* ========= Gold falling sentence (Christmas slow & glow) ========= */
+        let golds = [];
+        const goldMsg = [
+            "Ấm Áp💛",
+            "Người Thân 💞",
+            "Dịu Dàng❤️   "
+
+        ];
+        function initGold() {
+            golds = [];
+            const count = 15;
+
+            for (let i = 0; i < count; i++) {
+                golds.push({
+                    x: (innerWidth / count) * i + Math.random() * 50,
+                    y: Math.random() * -innerHeight,
+                    s: Math.random() * 0.25 + 0.85,
+                    vy: Math.random() * 0.35 + 0.2, // 🎄 rơi chậm
+                    rot: (Math.random() - 0.5) * 0.05,
+                    sway: Math.random() * 0.02 + 0.01,
+                    glow: Math.random() * 6 + 10,
+                    txt: goldMsg[Math.floor(Math.random() * goldMsg.length)],
+                });
+            }
+        }
+
+
+        initGold();
+
+        function drawGold(ctx, g) {
+            ctx.save();
+            ctx.translate(g.x, g.y);
+            ctx.rotate(g.rot);
+            ctx.scale(g.s, g.s);
+
+            ctx.font = "30px 'Playfair Display'";
+            ctx.fillStyle = "#FFD700"; // gold
+
+            // 🌟 Glow effect
+            ctx.shadowColor = "rgba(255, 215, 100, 0.9)";
+            ctx.shadowBlur = g.glow;
+
+            ctx.fillText(g.txt, 0, 0);
+            ctx.restore();
+        }
+
+        function renderGold() {
+            ctxText.clearRect(0, 0, innerWidth, innerHeight);
+            ctxText.font = '700 28px Playfair Display';
+            ctxText.textAlign = 'center';
+            for (const g of golds) {
+                drawGold(ctxText, g);
+                g.y += g.vy;
+                g.x += Math.sin(g.y * 0.01) * 0.6;
+                if (g.y > innerHeight + 50) { g.y = -60; g.x = Math.random() * innerWidth; }
+            }
+            requestAnimationFrame(renderGold);
+        }
+        renderGold();
+
+        /* ========= Fireworks + sparkle particles ========= */
+        let particles = [];
+        function spawnFirework(x, y, color, count = 28) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * (Math.random() * 6 + 1),
+                    vy: (Math.random() - 0.5) * (Math.random() * 6 + 1),
+                    life: Math.random() * 50 + 40,
+                    size: Math.random() * 2 + 1,
+                    color: color || `hsl(${Math.random() * 360},80%,60%)`,
+                    decay: 0.96 + Math.random() * 0.02
+                });
+            }
+        }
+        function randomBursts() {
+            const x = Math.random() * innerWidth * 0.8 + innerWidth * 0.1;
+            const y = Math.random() * innerHeight * 0.45 + innerHeight * 0.05;
+            const isMobile = innerWidth < 768;
+            spawnFirework(x, y, `hsl(${Math.random() * 360},80%,60%)`, isMobile ? 15 : (40 + Math.floor(Math.random() * 20)));
+        }
+        setInterval(randomBursts, 2000);
+
+        function renderFire() {
+            ctxFire.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                ctxFire.beginPath();
+                ctxFire.globalCompositeOperation = 'lighter';
+                ctxFire.fillStyle = p.color;
+                ctxFire.globalAlpha = Math.max(0, p.life / 80);
+                ctxFire.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctxFire.fill();
+                // motion
+                p.vy += 0.04; // gravity
+                p.x += p.vx; p.y += p.vy;
+                p.vx *= p.decay; p.vy *= p.decay;
+                p.life--;
+                if (p.life <= 0) { particles.splice(i, 1); }
+            }
+            ctxFire.globalAlpha = 1;
+            ctxFire.globalCompositeOperation = 'source-over';
+            requestAnimationFrame(renderFire);
+        }
+        renderFire();
+
+
+
+        /* ========= Snow-dove (simple white bird shapes flying) ========= */
+        let birds = [];
+        function initBirds() {
+            birds = [];
+            for (let i = 0; i < 3; i++) {
+                birds.push({
+                    x: -100 - Math.random() * 600,
+                    y: 60 + Math.random() * 150,
+                    sx: 1.6 + Math.random() * 1.4,
+                    wing: Math.random() * Math.PI * 2
+                });
+            }
+        }
+        initBirds();
+
+        function renderBirds() {
+            // draw on canvasFire overlay (top)
+            // small white V shapes
+            for (const b of birds) {
+                b.x += b.sx;
+                b.wing += 0.2;
+                if (b.x > innerWidth + 120) { b.x = -120; b.y = 60 + Math.random() * 150; b.sx = 1.4 + Math.random() * 2.4; }
+            }
+            // paint birds onto ctxFire (on top of fireworks already)
+            ctxFire.save();
+            for (const b of birds) {
+                ctxFire.beginPath();
+                ctxFire.strokeStyle = 'rgba(255,255,255,0.95)';
+                ctxFire.lineWidth = 2;
+                ctxFire.moveTo(b.x, b.y);
+                ctxFire.quadraticCurveTo(b.x + 14, b.y - 6 * Math.sin(b.wing), b.x + 28, b.y);
+                ctxFire.stroke();
+            }
+            ctxFire.restore();
+            requestAnimationFrame(renderBirds);
+        }
+        renderBirds();
+
+        const giftWrap = document.getElementById('giftWrap');
+        const giftEl = document.getElementById('gift');
+        const giftSurprise = document.getElementById('giftSurprise');
+        giftWrap.addEventListener('click', () => {
+            giftWrap.classList.add('open');
+            giftWrap.style.filter = 'drop-shadow(0 0 25px gold)';
+            const surprises = [
+                "🎄 Giáng Sinh an lành Bên Mọi Người 🤍",
+                "✨ Bạn là ngôi sao✨",
+                "🕯️ Bình yên & vui vẻ ",
+                "🎁 món quà của tôi chính là bạn!"
+            ];
+            giftSurprise.textContent =
+                surprises[Math.floor(Math.random() * surprises.length)];
+
+            giftSurprise.style.opacity = 1;
+            giftSurprise.style.transform = 'scale(1)';
+            giftSurprise.classList.add('play');
+            burstSpark();
+            // ✨ sao / tuyết
+
+
+            document.getElementById('giftSurprise').textContent =
+                surprises[Math.floor(Math.random() * surprises.length)];
+
+            // quick pop animation and spawn small gold chars
+            giftEl.classList.add('gift-bounce');
+            const particleCount = innerWidth < 768 ? 10 : 22;
+            for (let i = 0; i < particleCount; i++) {
+                setTimeout(() => spawnGoldParticle(giftWrap.getBoundingClientRect().left + 60, giftWrap.getBoundingClientRect().top + 20), i * 40);
+            }
+            setTimeout(() => giftEl.classList.remove('gift-bounce'), 900);
+        });
+
+        function spawnGoldParticle(x, y) {
+            particles.push({
+                x: x + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 40,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 1.5) * 6,
+                life: 40 + Math.random() * 40,
+                size: Math.random() * 2 + 1,
+                color: '#ffd973',
+                decay: 0.95 + Math.random() * 0.02
+            });
+        }
+
+        /* ========= Gold text continuous spawn for gift effect (helper) ========= */
+        setInterval(() => {
+            const isMobile = innerWidth < 768;
+            spawnFirework(innerWidth * 0.2 + Math.random() * innerWidth * 0.6, innerHeight * 0.25 + Math.random() * 40, '#ffd973', isMobile ? 12 : 26);
+        }, 4500);
+
+        /* ========= Page controls & music ========= */
+        const page1 = document.getElementById('page1');
+        const page2 = document.getElementById('page2');
+        const openNext = document.getElementById('openNext');
+        const nextPageBtn = document.getElementById('nextPage');
+        const backBtn = document.getElementById('backBtn');
+        const musicToggle = document.getElementById('musicToggle');
+        const bgMusic = document.getElementById('bgMusic');
+        const stopMusicBtn = document.getElementById('stopMusic');
+
+        function showPage2() {
+            page1.classList.remove('visible'); page1.classList.add('hidden');
+            page2.classList.remove('hidden'); page2.classList.add('visible');
+            playMusic();
+        }
+        function showPage1() {
+            page2.classList.remove('visible'); page2.classList.add('hidden');
+            page1.classList.remove('hidden'); page1.classList.add('visible');
+            stopMusic();
+        }
+
+        openNext.addEventListener('click', showPage2);
+        nextPageBtn.addEventListener('click', showPage2);
+        backBtn.addEventListener('click', showPage1);
+
+        musicToggle.addEventListener('click', () => {
+            if (bgMusic.paused) { playMusic(); } else { stopMusic(); }
+        });
+        stopMusicBtn.addEventListener('click', () => stopMusic());
+
+        function playMusic() {
+            bgMusic.play().catch(() => { /* may require user gesture; gift click or openNext is user gesture */ });
+            musicToggle.textContent = '🔊 Tắt nhạc';
+        }
+        function stopMusic() {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            musicToggle.textContent = '🔈 Nhạc';
+        }
+
+        /* ========= small helper: spawn one firework on click for fun ========= */
+        document.addEventListener('click', (e) => {
+            // spawn at click but avoid when clicking UI controls
+            if (e.target.closest('.controls') || e.target.closest('button')) return;
+            spawnFirework(e.clientX, e.clientY, `hsl(${Math.random() * 360},85%,60%)`, 28);
+        });
+
+        /* ========= Responsive re-init on resize ========= */
+        window.addEventListener('resize', () => {
+            initStars(); initSnow1(); initSnow2(); initGold();
+            resizeAll();
+            drawBgGlow();
+        });
+
+        /* ========= initial small bursts to look lively ========= */
+        setTimeout(() => { randomBursts(); randomBursts(); }, 600);
+
+        let wind = 0;
+        setInterval(() => {
+            wind = Math.sin(Date.now() * 0.0004) * 1.6;
+        }, 20);
+
+        function applyWindToSnow() {
+            flakes1.forEach(f => f.x += wind * (f.r * 0.3));
+            flakes2.forEach(f => f.x += wind * (f.r * 0.08));
+        }
+        setInterval(applyWindToSnow, 20);
+
+
+        function burstSpark() {
+            const icons = ['✨', '❄️', '⭐', '💫'];
+            for (let i = 0; i < 12; i++) {
+                const s = document.createElement('div');
+                s.className = 'spark';
+                s.textContent = icons[Math.floor(Math.random() * icons.length)];
+                s.style.left = '50%';
+                s.style.top = '50%';
+                s.style.setProperty('--x', (Math.random() * 160 - 80) + 'px');
+                s.style.setProperty('--y', (-Math.random() * 120 - 40) + 'px');
+                giftWrap.appendChild(s);
+                setTimeout(() => s.remove(), 1400);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
